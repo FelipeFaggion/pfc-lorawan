@@ -37,12 +37,13 @@ def on_message(client, userdata, msg):
 
     print(f"Uplink do dispositivo {dev_eui} recebido.")
     if "uplink_message" in data:
-      if data["uplink_message"].get("decoded_payload", {}).get("temperature") > 20:
-        print(f"Temperatura alta ({data['uplink_message']['decoded_payload']['temperature']}). Agendando downlink para o dispositivo {dev_eui}.")
-        downlink_payload_hex = "1900"
-        downlink_payload_bytes = bytes.fromhex(downlink_payload_hex)
-        downlink_payload_base64 = downlink_payload_bytes.hex()
+      payload_data = data["uplink_message"].get("decoded_payload", {})
+      temperature = payload_data.get("temperature", 0)
 
+      if temperature >= 26:
+        print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
+
+        downlink_payload_base64 = "GQ==" # GQ== é base64 do valor '25' (0x1900) em bytes
         downlink = {
                 "downlinks": [{
                         "f_port": 1,
