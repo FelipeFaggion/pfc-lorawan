@@ -8,6 +8,7 @@ MQTT_SERVER = "au1.cloud.thethings.network"
 MQTT_PORT = 1883
 APPLICATION_ID = "pfc-game-theory"
 API_KEY = "NNSXS.3XCBK3BPTOYYRDMGB3A7URS3ZNJOZ7HLOJ6IP2Y.LTDP5HV35N5AL7WM26NAHJGLH64CHEMHZ3XFDZYI4ON4MQY2FUTA"
+API_URL = "https://au1.cloud.thethings.network"
 
 
 DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
@@ -15,7 +16,7 @@ DEV_EUIs_1 = []
 
 def get_all_dev_euis():
   try:
-    url = f"https://{MQTT_SERVER}/api/v3/applications/{APPLICATION_ID}/devices"
+    url = f"{API_URL}/api/v3/applications/{APPLICATION_ID}/devices"
     
     headers = {
       "Authorization": f"Bearer {API_KEY}",
@@ -38,7 +39,7 @@ def get_all_dev_euis():
 def reset_frame_counter(dev_euis):
   for dev_eui in dev_euis:
     try:
-      url = f"https://{MQTT_SERVER}/api/v3/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
+      url = f"{API_URL}/api/v3/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
       
       headers = {
         "Authorization": f"Bearer {API_KEY}",
