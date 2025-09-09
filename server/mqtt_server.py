@@ -1,6 +1,8 @@
 import paho.mqtt.client as mqtt
 import json
 import time
+import base64
+import requests
 
 MQTT_SERVER = "au1.cloud.thethings.network"
 MQTT_PORT = 1883
