@@ -9,9 +9,56 @@ API_KEY = "NNSXS.3XCBK3BPTOYYRDMGB3A7URS3ZNJOZ7HLOJ6IP2Y.LTDP5HV35N5AL7WM26NAHJG
 
 
 DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
+DEV_EUIs_1 = []
+
+def get_all_dev_euis():
+  try:
+    url = f"https://{MQTT_SERVER}/api/v3/applications/{APPLICATION_ID}/devices"
+    
+    headers = {
+      "Authorization": f"Bearer {API_KEY}",
+      "Content-Type": "application/json"
+    }
+    
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+
+    data = response.json()
+    dev_euis = [device['ids']['dev_eui'] for device in data['end_devices']]
+
+    print(f"DevEUIs recuperados: {dev_euis}")
+    
+    return dev_euis
+
+  except request.exceptions.RequestException as e:
+    print(f"Erro ao recuperar DevEUIs: {e}")
+
+def reset_frame_counter(dev_euis):
+  for dev_eui in dev_euis:
+    try:
+      url = f"https://{MQTT_SERVER}/api/v3/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
+      
+      headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+      }
+
+      data = {
+        "mac_settings": {
+          "reset_f_cnt_up": True,
+          "reset_f_cnt_down": True
+        }
+      }
+
+      response = requests.put(url, headers=headers, json=data)
+      response.raise_for_status()
+      print(f"Contador de quadros resetado para o dispositivo {dev_eui}")
+
+    except requests.exception.RequestException as e:
+      print(f"Erro ao resetar o contador de quadros para {dev_eui}: {e}")
 
 def clear_downlink_queue(client):
-  for dev_eui in DEV_EUIs:
+  for dev_eui in DEV_EUIs_1:
     downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/replace"
 
     client.publish(downlink_topic, '{"downlinks": []}')
@@ -22,6 +69,7 @@ def on_connect(client, userdata, flags, rc):
     print("Conectado ao servidor MQTT da TTN!")
     client.subscribe(f"v3/{APPLICATION_ID}@ttn/devices/+/up")
 
+    DEV_EUIs_1 = get_all_dev_euis()
     clear_downlink_queue(client)
 
   else:
