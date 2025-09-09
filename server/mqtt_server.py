@@ -30,7 +30,7 @@ def get_all_dev_euis():
     
     return dev_euis
 
-  except request.exceptions.RequestException as e:
+  except requests.exceptions.RequestException as e:
     print(f"Erro ao recuperar DevEUIs: {e}")
 
 def reset_frame_counter(dev_euis):
