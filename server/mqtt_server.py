@@ -7,10 +7,23 @@ MQTT_PORT = 1883
 APPLICATION_ID = "pfc-game-theory"
 API_KEY = "NNSXS.3XCBK3BPTOYYRDMGB3A7URS3ZNJOZ7HLOJ6IP2Y.LTDP5HV35N5AL7WM26NAHJGLH64CHEMHZ3XFDZYI4ON4MQY2FUTA"
 
+
+DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
+
+def clear_downlink_queue(client):
+  for dev_eui in DEV_EUIs:
+    downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/replace"
+
+    client.publish(downlink_topic, '{"downlinks": []}')
+    print(f"Fila de downlink limpa para o dispositivo {dev_eui}.")
+
 def on_connect(client, userdata, flags, rc):
   if rc == 0:
     print("Conectado ao servidor MQTT da TTN!")
     client.subscribe(f"v3/{APPLICATION_ID}@ttn/devices/+/up")
+
+    clear_downlink_queue(client)
+
   else:
     print(f"Falha na conexão, código de retorno: {rc}")
 
