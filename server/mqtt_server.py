@@ -8,10 +8,10 @@ MQTT_SERVER = "au1.cloud.thethings.network"
 MQTT_PORT = 1883
 APPLICATION_ID = "pfc-game-theory"
 API_KEY = "NNSXS.3XCBK3BPTOYYRDMGB3A7URS3ZNJOZ7HLOJ6IP2Y.LTDP5HV35N5AL7WM26NAHJGLH64CHEMHZ3XFDZYI4ON4MQY2FUTA"
-API_URL = "https://au1.cloud.thethings.network"
+API_URL = "https://eu1.cloud.thethings.network"
 
 
-DEV_EUIS = []
+DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
 DEV_EUIS_1 = []
 
 def get_all_dev_euis():
