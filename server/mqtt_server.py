@@ -37,30 +37,30 @@ def get_all_dev_euis():
         print(f"Erro ao recuperar DevEUIs: {e}")
         return []
 
-def reset_frame_counter(deveuis):
-    """
-    Reseta o contador de quadros de todos os dispositivos usando a API REST do TTN.
-    """
-    for dev_eui in deveuis:
-        try:
-            url = f"{API_URL_AU1}/api/v3/ns/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
-            headers = {
-                "Authorization": f"Bearer {API_KEY}",
-                "Content-Type": "application/json"
-            }
-            data = {
-                "mac_settings": {
-                    "reset_f_cnt_up": True,
-                    "reset_f_cnt_down": True
-                }
-            }
+# def reset_frame_counter(deveuis):
+#     """
+#     Reseta o contador de quadros de todos os dispositivos usando a API REST do TTN.
+#     """
+#     for dev_eui in deveuis:
+#         try:
+#             url = f"{API_URL_EU1}/api/v3/ns/applications/{APPLICATION_ID}/devices/{dev_eui}"
+#             headers = {
+#                 "Authorization": f"Bearer {API_KEY}",
+#                 "Content-Type": "application/json"
+#             }
+#             data = {
+#                 "mac_settings": {
+#                     "reset_f_cnt_up": True,
+#                     "reset_f_cnt_down": True
+#                 }
+#             }
             
-            response = requests.put(url, headers=headers, json=data)
-            response.raise_for_status()
-            print(f"Contador de quadros resetado para o dispositivo {dev_eui}.")
+#             response = requests.put(url, headers=headers, json=data)
+#             response.raise_for_status()
+#             print(f"Contador de quadros resetado para o dispositivo {dev_eui}.")
 
-        except requests.exceptions.RequestException as e:
-            print(f"Erro ao resetar o contador de quadros para {dev_eui}: {e}")
+#         except requests.exceptions.RequestException as e:
+#             print(f"Erro ao resetar o contador de quadros para {dev_eui}: {e}")
 
 def clear_downlink_queue(client, deveuis):
     """
@@ -81,7 +81,7 @@ def on_connect(client, userdata, flags, rc):
 
         if deveuis:
             clear_downlink_queue(client, deveuis)
-            reset_frame_counter(deveuis)
+            # reset_frame_counter(deveuis)
 
     else:
         print(f"Falha na conexão, código de retorno: {rc}")
