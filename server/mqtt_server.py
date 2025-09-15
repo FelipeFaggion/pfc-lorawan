@@ -8,7 +8,8 @@ MQTT_SERVER = "au1.cloud.thethings.network"
 MQTT_PORT = 1883
 APPLICATION_ID = "pfc-game-theory"
 API_KEY = "NNSXS.3XCBK3BPTOYYRDMGB3A7URS3ZNJOZ7HLOJ6IP2Y.LTDP5HV35N5AL7WM26NAHJGLH64CHEMHZ3XFDZYI4ON4MQY2FUTA"
-API_URL = "https://eu1.cloud.thethings.network"
+API_URL_EU1 = "https://eu1.cloud.thethings.network"
+API_URL_AU1 = "https://au1.cloud.thethings.network"
 
 
 DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
@@ -19,7 +20,7 @@ def get_all_dev_euis():
     Recupera a lista de todos os DevEUIs registrados na aplicação TTN.
     """
     try:
-        url = f"{API_URL}/api/v3/applications/{APPLICATION_ID}/devices"
+        url = f"{API_URL_EU1}/api/v3/applications/{APPLICATION_ID}/devices"
         headers = {
             "Authorization": f"Bearer {API_KEY}",
             "Content-Type": "application/json"
@@ -42,7 +43,7 @@ def reset_frame_counter(deveuis):
     """
     for dev_eui in deveuis:
         try:
-            url = f"{API_URL}/api/v3/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
+            url = f"{API_URL_AU1}/api/v3/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
             headers = {
                 "Authorization": f"Bearer {API_KEY}",
                 "Content-Type": "application/json"
