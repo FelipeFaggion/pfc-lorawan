@@ -43,7 +43,7 @@ def reset_frame_counter(deveuis):
     """
     for dev_eui in deveuis:
         try:
-            url = f"{API_URL_AU1}/api/v3/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
+            url = f"{API_URL_AU1}/api/v3/ns/applications/{APPLICATION_ID}/devices/{dev_eui}/mac-settings"
             headers = {
                 "Authorization": f"Bearer {API_KEY}",
                 "Content-Type": "application/json"
