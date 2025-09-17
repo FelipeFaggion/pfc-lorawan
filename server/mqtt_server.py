@@ -16,6 +16,9 @@ DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
 DEV_EUIS_1 = []
 
 def get_all_dev_euis():
+    """
+    Recupera a lista de todos os DevEUIs registrados na aplicação TTN.
+    """
     try:
         url = f"{API_URL_EU1}/api/v3/applications/{APPLICATION_ID}/devices"
         headers = {
@@ -34,7 +37,35 @@ def get_all_dev_euis():
         print(f"Erro ao recuperar DevEUIs: {e}")
         return []
 
+# def reset_frame_counter(deveuis):
+#     """
+#     Reseta o contador de quadros de todos os dispositivos usando a API REST do TTN.
+#     """
+#     for dev_eui in deveuis:
+#         try:
+#             url = f"{API_URL_EU1}/api/v3/ns/applications/{APPLICATION_ID}/devices/{dev_eui}"
+#             headers = {
+#                 "Authorization": f"Bearer {API_KEY}",
+#                 "Content-Type": "application/json"
+#             }
+#             data = {
+#                 "mac_settings": {
+#                     "reset_f_cnt_up": True,
+#                     "reset_f_cnt_down": True
+#                 }
+#             }
+            
+#             response = requests.put(url, headers=headers, json=data)
+#             response.raise_for_status()
+#             print(f"Contador de quadros resetado para o dispositivo {dev_eui}.")
+
+#         except requests.exceptions.RequestException as e:
+#             print(f"Erro ao resetar o contador de quadros para {dev_eui}: {e}")
+
 def clear_downlink_queue(client, deveuis):
+    """
+    Limpa a fila de downlink de todos os dispositivos.
+    """
     for dev_eui in deveuis:
         downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/replace"
         
@@ -66,13 +97,6 @@ def on_message(client, userdata, msg):
         if "uplink_message" in data:
             payload_data = data["uplink_message"].get("decoded_payload", {})
             temperature = payload_data.get("temperature", 0)
-
-
-            if (temperature > 20):
-                print(f"Temperatura maior que 20{temperature}")
-            
-            if (temperature <=40):
-                f"Temperatura menor que 40{temperature}"
 
             if temperature > 20 and temperature <= 30:
                 print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
