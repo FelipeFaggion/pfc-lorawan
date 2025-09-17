@@ -98,9 +98,7 @@ def on_message(client, userdata, msg):
             payload_data = data["uplink_message"].get("decoded_payload", {})
             temperature = payload_data.get("temperature", 0)
 
-            print(f"Tipagem de temperature: {type(temperature)}")
-
-            if temperature > 20 and temperature <= 30:
+            if temperature >=30 and temperature <= 40:
                 print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
 
                 downlink_payload_base64 = "GQ=="
