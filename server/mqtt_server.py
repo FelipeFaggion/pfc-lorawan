@@ -16,9 +16,6 @@ DEV_EUIs = ["70B3D57ED00717AE", "70B3D57ED0072A97"]
 DEV_EUIS_1 = []
 
 def get_all_dev_euis():
-    """
-    Recupera a lista de todos os DevEUIs registrados na aplicação TTN.
-    """
     try:
         url = f"{API_URL_EU1}/api/v3/applications/{APPLICATION_ID}/devices"
         headers = {
@@ -38,9 +35,6 @@ def get_all_dev_euis():
         return []
 
 def clear_downlink_queue(client, deveuis):
-    """
-    Limpa a fila de downlink de todos os dispositivos.
-    """
     for dev_eui in deveuis:
         downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/replace"
         
