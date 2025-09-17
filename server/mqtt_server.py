@@ -81,7 +81,7 @@ def on_connect(client, userdata, flags, rc):
 
         if deveuis:
             clear_downlink_queue(client, deveuis)
-            reset_frame_counter(deveuis)
+            # reset_frame_counter(deveuis)
 
     else:
         print(f"Falha na conexão, código de retorno: {rc}")
@@ -97,6 +97,8 @@ def on_message(client, userdata, msg):
         if "uplink_message" in data:
             payload_data = data["uplink_message"].get("decoded_payload", {})
             temperature = payload_data.get("temperature", 0)
+
+            print(f"Tipagem de temperature: {type(temperature)}")
 
             if temperature > 20 and temperature <= 30:
                 print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
