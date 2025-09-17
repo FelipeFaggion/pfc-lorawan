@@ -101,7 +101,7 @@ def on_message(client, userdata, msg):
             if temperature >=30 and temperature <= 40:
                 print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
 
-                downlink_payload_base64 = "GQ=="
+                downlink_payload_base64 = "MjU="
 
                 downlink = {
                     "downlinks": [{
