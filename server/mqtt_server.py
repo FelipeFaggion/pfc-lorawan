@@ -3,6 +3,7 @@ import json
 import time
 import base64
 import requests
+# -*- coding: utf-8 -*-
 
 MQTT_SERVER = "au1.cloud.thethings.network"
 MQTT_PORT = 1883
