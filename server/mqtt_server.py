@@ -111,6 +111,9 @@ def on_message(client, userdata, msg):
                     }]
                 }
 
+                print(f"DOWNLINK: {downlink}")
+                print(f"DOWNLINK_PAYLOAD_BASE64: {downlink_payload_base64}")
+
                 downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/push"
 
                 client.publish(downlink_topic, json.dumps(downlink))
