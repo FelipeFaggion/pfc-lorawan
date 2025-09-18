@@ -96,30 +96,40 @@ def on_message(client, userdata, msg):
         print(f"Uplink do dispositivo {dev_eui} recebido.")
         if "uplink_message" in data:
             payload_data = data["uplink_message"].get("decoded_payload", {})
-            temperature = payload_data.get("temperature", 0)
+            msg_type = payload_data.get("type", "unknown")
 
-            if temperature >=30 and temperature <= 40:
-                print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
+            if msg_type == "temperature":
+                temperature = payload_data.get("temperature")
+                print(f"Temperatura recebida: {temperature}")
 
-                downlink_payload_base64 = "FA=="
+                if temperature >=30 and temperature <= 40:
+                    print(f"Temperatura alta ({temperature}). Agendando downlink para o dispositivo {dev_eui}.")
 
-                downlink = {
-                    "downlinks": [{
-                        "f_port": 1,
-                        "frm_payload": downlink_payload_base64,
-                        "confirmed": False
-                    }]
-                }
+                    downlink_payload_base64 = "FA=="
 
-                print(f"DOWNLINK: {downlink}")
-                print(f"DOWNLINK_PAYLOAD_BASE64: {downlink_payload_base64}")
+                    downlink = {
+                        "downlinks": [{
+                            "f_port": 1,
+                            "frm_payload": downlink_payload_base64,
+                            "confirmed": False
+                        }]
+                    }
 
-                downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/push"
+                    print(f"DOWNLINK: {downlink}")
+                    print(f"DOWNLINK_PAYLOAD_BASE64: {downlink_payload_base64}")
 
-                client.publish(downlink_topic, json.dumps(downlink))
-                print("Downlink agendado.")
+                    downlink_topic = f"v3/{APPLICATION_ID}@ttn/devices/{dev_eui}/down/push"
+
+                    client.publish(downlink_topic, json.dumps(downlink))
+                    print("Downlink agendado.")
+                else:
+                    print(f"Temperatura ({temperature}) dentro do range. Nao agendando downlink.")
+
+            elif msg_type == "heartbeat":
+                print("Mensagem de heartbeat recebida (sem temperatura).")
+
             else:
-                 print(f"Temperatura ({temperature}) dentro do range. Nao agendando downlink.")
+                print("Payload desconhecido ou inválido recebido.")
 
     except Exception as e:
         print(f"Erro ao processar mensagem: {e}")
