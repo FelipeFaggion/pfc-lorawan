@@ -6,7 +6,7 @@
     "radio_0": {
       "enable": true,
       "type": "SX1257",
-      "freq": 917200000,
+      "freq": 915200000,
       "rssi_offset": -166,
       "tx_enable": true,
       "tx_freq_min": 915000000,
@@ -15,7 +15,7 @@
     "radio_1": {
       "enable": true,
       "type": "SX1257",
-      "freq": 917900000,
+      "freq": 916900000,
       "rssi_offset": -166,
       "tx_enable": false
     },
@@ -168,13 +168,13 @@
   },
   "gateway_conf": {
     "gateway_ID": "B827EBFFFE295E58",
-    "server_address": "au1.cloud.thethings.network",
+    "server_address": "127.0.0.1",
     "serv_port_up": 1700,
     "serv_port_down": 1700,
     "servers": [
       {
         "gateway_ID": "B827EBFFFE295E58",
-        "server_address": "au1.cloud.thethings.network",
+        "server_address": "127.0.0.1",
         "serv_port_up": 1700,
         "serv_port_down": 1700,
         "serv_enabled": true
