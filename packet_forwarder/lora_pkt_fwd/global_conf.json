@@ -162,7 +162,7 @@
     "tx_lut_15": {
       "pa_gain": 3,
       "mix_gain": 14,
-      "rf_power": 27,
+      "rf_power": 30,
       "dig_gain": 0
     }
   },
