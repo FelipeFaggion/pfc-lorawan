@@ -1,0 +1,10 @@
+# Ignorar tudo que começa com ponto
+.*
+
+# Exceto o .gitignore
+!.gitignore
+
+# Garantir que só as pastas do projeto fiquem
+chirp_server/
+packet_forwarder/
+
