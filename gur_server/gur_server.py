@@ -26,7 +26,7 @@ def send_downlink(client, device_id, satisfaction):
     """Envia downlink com o grau de satisfação."""
     payload = {
         "downlinks": [{
-            "f_port": 1,
+            "f_port": 2,
             "frm_payload": base64.b64encode(bytes([int(satisfaction)])).decode(),
             "confirmed": False
         }]
