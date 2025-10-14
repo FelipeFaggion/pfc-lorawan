@@ -3,15 +3,18 @@ import json
 import time
 import math
 import base64
+import csv
 from threading import Timer
+from datetime import datetime
 
 APP_ID = "pfc-game-theory"
 TTN_REGION = "au1"
 MQTT_BROKER = f"{TTN_REGION}.cloud.thethings.network"
 API_KEY = "NNSXS.S3YLGCMJFMONQOHBRJ665U4ZSJNSJN7KOKS2VAA.HROWPD2TPDVW4IEY2FI2E4VT4DPUTQDLOXHDQNJXLP6H4BV7MDHA"
 
-WINDOW_SECONDS = 900  
+WINDOW_SECONDS = 900
 TARGET_MESSAGES = 30
+LOG_FILE = "gur_log.csv"
 
 nodes = {}
 window_start = time.time()
@@ -20,6 +23,15 @@ window_start = time.time()
 def calc_satisfaction(recebido, n):
     """Cálculo gaussiano do grau de satisfação."""
     return round(20 + 80 * math.exp(-0.002 * (recebido - n)**2), 2)
+
+
+def log_event(device_id, total, satisfaction):
+    """Registra evento em arquivo CSV."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_FILE, mode="a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([timestamp, device_id, total, satisfaction])
+    print(f"📝 Log salvo: {timestamp} | {device_id} | total={total} | sat={satisfaction}")
 
 
 def send_downlink(client, device_id, satisfaction):
@@ -68,7 +80,14 @@ def on_message(client, userdata, msg):
 
     print(f"[↑] Uplink de {device_id} | total={total_received} | satisfação={satisfaction}")
 
+    log_event(device_id, total_received, satisfaction)
     send_downlink(client, device_id, satisfaction)
+
+
+with open(LOG_FILE, mode="a", newline="") as f:
+    writer = csv.writer(f)
+    if f.tell() == 0:  # arquivo vazio
+        writer.writerow(["timestamp", "device_id", "total_received", "satisfaction"])
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # usa API moderna
 client.username_pw_set(APP_ID, API_KEY)
