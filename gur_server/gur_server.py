@@ -5,25 +5,17 @@ import math
 import base64
 from threading import Timer
 
-# ==============================
-# CONFIGURAÇÕES
-# ==============================
-
 APP_ID = "pfc-game-theory"
-TTN_REGION = "au1"  # altera se for eu1, nam1, etc.
+TTN_REGION = "au1"
 MQTT_BROKER = f"{TTN_REGION}.cloud.thethings.network"
 API_KEY = "NNSXS.SH5KOVWVEZJGZIV4QAJRTO4CJAHTIGRIEP6H56Q.3ISS6RW2AFNXJQUOABTKV5PB46N7DQAP5AYL625WMUKIDEQROR7Q"
 
-WINDOW_SECONDS = 900  # janela de tempo (15 minutos)
-TARGET_MESSAGES = 30  # número desejado de mensagens por janela
+WINDOW_SECONDS = 900  
+TARGET_MESSAGES = 30
 
 nodes = {}
 window_start = time.time()
 
-
-# ==============================
-# FUNÇÕES AUXILIARES
-# ==============================
 
 def calc_satisfaction(recebido, n):
     """Cálculo gaussiano do grau de satisfação."""
@@ -54,10 +46,6 @@ def reset_window():
     Timer(WINDOW_SECONDS, reset_window).start()
 
 
-# ==============================
-# CALLBACKS MQTT
-# ==============================
-
 def on_connect(client, userdata, flags, rc):
     print("✅ Conectado ao TTN MQTT Broker")
     client.subscribe(f"v3/{APP_ID}@ttn/devices/+/up")
@@ -69,7 +57,6 @@ def on_message(client, userdata, msg):
     data = json.loads(msg.payload.decode())
     device_id = data["end_device_ids"]["device_id"]
 
-    # Atualiza contador
     nodes[device_id] = nodes.get(device_id, 0) + 1
 
     total_received = sum(nodes.values())
@@ -77,13 +64,7 @@ def on_message(client, userdata, msg):
 
     print(f"[↑] Uplink de {device_id} | total={total_received} | satisfação={satisfaction}")
 
-    # Envia grau de satisfação como downlink
     send_downlink(client, device_id, satisfaction)
-
-
-# ==============================
-# INICIALIZAÇÃO
-# ==============================
 
 client = mqtt.Client()
 client.username_pw_set(APP_ID, API_KEY)
@@ -93,10 +74,7 @@ client.on_message = on_message
 client.connect(MQTT_BROKER, 8883, 60)
 client.loop_start()
 
-# Inicia a janela de contagem
 reset_window()
-
-# Mantém o script rodando
 try:
     while True:
         time.sleep(1)
