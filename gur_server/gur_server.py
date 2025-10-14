@@ -46,10 +46,14 @@ def reset_window():
     Timer(WINDOW_SECONDS, reset_window).start()
 
 
-def on_connect(client, userdata, flags, rc):
-    print("✅ Conectado ao TTN MQTT Broker")
-    client.subscribe(f"v3/{APP_ID}@ttn/devices/+/up")
-    print("📡 Aguardando uplinks...")
+def on_connect(client, userdata, flags, rc, properties=None):
+    if rc == 0:
+        print("✅ Conectado ao TTN MQTT Broker")
+        topic = f"v3/{APP_ID}@ttn/devices/+/up"
+        client.subscribe(topic)
+        print(f"📡 Subscrito em: {topic}")
+    else:
+        print(f"⚠️ Falha na conexão (rc={rc})")
 
 
 def on_message(client, userdata, msg):
@@ -66,13 +70,14 @@ def on_message(client, userdata, msg):
 
     send_downlink(client, device_id, satisfaction)
 
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)  # usa API moderna
 client.username_pw_set(APP_ID, API_KEY)
 client.tls_set()
-client.enable_logger()  
+client.tls_insecure_set(False)   # garante verificação TLS
 client.on_connect = on_connect
 client.on_message = on_message
 
+print(f"🔗 Conectando a {MQTT_BROKER} ...")
 client.connect(MQTT_BROKER, 8883, 60)
 client.loop_start()
 
