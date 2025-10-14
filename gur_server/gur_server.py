@@ -68,6 +68,8 @@ def on_message(client, userdata, msg):
 
 client = mqtt.Client()
 client.username_pw_set(APP_ID, API_KEY)
+client.tls_set()
+client.enable_logger()  
 client.on_connect = on_connect
 client.on_message = on_message
 
