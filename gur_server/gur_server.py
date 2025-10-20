@@ -21,10 +21,10 @@ WINDOW_CAPACITY = MAX_RATE_PER_MIN * (WINDOW_SECONDS // 60)  # = 180
 
 # === cronograma de alvos (em segundos desde o início do experimento) ===
 TARGET_SCHEDULE = [
-    (0,    60),
-    (600,  90),   # 10 min
-    (1200, 120),  # 20 min
-    (1800, 60),   # 30 min
+    (0,   40),   # fase 1: fácil
+    (600, 60),   # fase 2: médio
+    (1200, 90),  # fase 3: agressivo
+    (1800, 40)   # fase 4: relaxa
 ]
 
 nodes = {}
