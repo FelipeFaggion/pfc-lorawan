@@ -14,14 +14,14 @@ APPLICATION_ID = "50981d4c-9ebd-49fc-a7d4-f88ea8598ef2"
 LOG_FILE = "gur_log.csv"
 
 # === Parâmetros do Gur Game ===
-WINDOW_SECONDS = 1800  # 30 min
+WINDOW_SECONDS = 3600  # 30 min
 MAX_RATE_PER_MIN = 12
 WINDOW_CAPACITY = MAX_RATE_PER_MIN * (WINDOW_SECONDS // 60)
 TARGET_SCHEDULE = [
     (0, 40),
-    (1800, 60),
-    (2400, 90),
-    (3000, 40)
+    (3600, 60),
+    (7200, 90),
+    (10800, 40)
 ]
 
 nodes = {}
