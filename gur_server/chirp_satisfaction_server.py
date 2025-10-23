@@ -8,16 +8,13 @@ from threading import Timer
 from datetime import datetime
 
 # === CONFIGURAÇÕES CHIRPSTACK ===
-MQTT_BROKER = "localhost"  # ou IP do servidor ChirpStack
+MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
-MQTT_USERNAME = "chirpstack"
-MQTT_PASSWORD = "chirpstack"
-
-APPLICATION_ID = "1"  # ID numérico da aplicação no ChirpStack (não é o nome)
+APPLICATION_ID = "50981d4c-9ebd-49fc-a7d4-f88ea8598ef2"
 LOG_FILE = "gur_log.csv"
 
 # === Parâmetros do Gur Game ===
-WINDOW_SECONDS = 1800  # 30 minutos
+WINDOW_SECONDS = 1800  # 30 min
 MAX_RATE_PER_MIN = 12
 WINDOW_CAPACITY = MAX_RATE_PER_MIN * (WINDOW_SECONDS // 60)
 TARGET_SCHEDULE = [
@@ -32,17 +29,18 @@ window_start = time.time()
 experiment_start = time.time()
 TARGET_MESSAGES = TARGET_SCHEDULE[0][1]
 
-# ================== FUNÇÕES PRINCIPAIS ===================
 
 def calc_satisfaction(recebido, n):
     val = 20 + 80 * math.exp(-0.002 * (recebido - n) ** 2)
     return round(max(0.0, min(100.0, val)), 2)
+
 
 def log_event(device_id, total, satisfaction):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, mode="a", newline="") as f:
         csv.writer(f).writerow([timestamp, device_id, total, satisfaction])
     print(f"📝 Log salvo: {timestamp} | {device_id} | total={total} | sat={satisfaction}")
+
 
 def send_downlink(client, dev_eui, satisfaction):
     payload = {
@@ -54,12 +52,14 @@ def send_downlink(client, dev_eui, satisfaction):
     client.publish(topic, json.dumps(payload))
     print(f"[↓] Downlink enviado para {dev_eui}: satisfação={satisfaction}")
 
+
 def reset_window():
     global nodes, window_start
     nodes = {}
     window_start = time.time()
     print(f"\n🕒 Nova janela iniciada às {time.strftime('%H:%M:%S')}\n")
     Timer(WINDOW_SECONDS, reset_window).start()
+
 
 def status_global_tick():
     total_received = sum(nodes.values())
@@ -72,6 +72,7 @@ def status_global_tick():
         f" | satisfação={sat:.2f}%"
     )
     Timer(60, status_global_tick).start()
+
 
 def update_target_tick():
     global TARGET_MESSAGES
@@ -88,7 +89,6 @@ def update_target_tick():
         print(f"\n🎯 Novo setpoint de janela: TARGET_MESSAGES={TARGET_MESSAGES}{warn}\n")
     Timer(5, update_target_tick).start()
 
-# ================== CALLBACKS MQTT ===================
 
 def on_connect(client, userdata, flags, rc, properties=None):
     if rc == 0:
@@ -99,14 +99,16 @@ def on_connect(client, userdata, flags, rc, properties=None):
     else:
         print(f"⚠️ Falha na conexão (rc={rc})")
 
+
 def on_message(client, userdata, msg):
     global nodes
     data = json.loads(msg.payload.decode())
 
-    dev_eui = data.get("deviceInfo", {}).get("devEui", "unknown")
-    device_id = data.get("deviceInfo", {}).get("deviceName", dev_eui)
-    nodes[device_id] = nodes.get(device_id, 0) + 1
+    dev_info = data.get("deviceInfo", {})
+    dev_eui = dev_info.get("devEui", "unknown")
+    device_id = dev_info.get("deviceName", dev_eui)
 
+    nodes[device_id] = nodes.get(device_id, 0) + 1
     total_received = sum(nodes.values())
     satisfaction = calc_satisfaction(total_received, TARGET_MESSAGES)
 
@@ -114,14 +116,12 @@ def on_message(client, userdata, msg):
     log_event(device_id, total_received, satisfaction)
     send_downlink(client, dev_eui, satisfaction)
 
-# ================== EXECUÇÃO ===================
 
 with open(LOG_FILE, mode="a", newline="") as f:
     if f.tell() == 0:
         csv.writer(f).writerow(["timestamp", "device_id", "total_received", "satisfaction"])
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect(MQTT_BROKER, MQTT_PORT, 60)
