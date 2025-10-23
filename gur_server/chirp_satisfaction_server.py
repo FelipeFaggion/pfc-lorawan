@@ -44,6 +44,7 @@ def log_event(device_id, total, satisfaction):
 
 def send_downlink(client, dev_eui, satisfaction):
     payload = {
+        "devEui": dev_eui,
         "confirmed": False,
         "f_port": 2,
         "data": base64.b64encode(bytes([int(satisfaction)])).decode(),
