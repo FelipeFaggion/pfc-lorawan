@@ -96,6 +96,11 @@ def on_message(client, userdata, msg):
     dev_eui = dev_info.get("devEui", "unknown")
     device_id = dev_info.get("deviceName", dev_eui)
 
+    f_port = data.get("fPort", None)
+    if f_port != 2:
+        print(f"↩️ Ignorado uplink fPort={f_port} de {device_id}")
+        return
+
     now = time.time()
     message_log.append((now, device_id))
     nodes_total[device_id] = nodes_total.get(device_id, 0) + 1
