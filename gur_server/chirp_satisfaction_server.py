@@ -13,36 +13,45 @@ MQTT_PORT = 1883
 APPLICATION_ID = "50981d4c-9ebd-49fc-a7d4-f88ea8598ef2"
 LOG_FILE = "gur_log.csv"
 
-# === Parâmetros do Gur Game ===
-WINDOW_SECONDS = 3600  # 30 min
-MAX_RATE_PER_MIN = 12
-WINDOW_CAPACITY = MAX_RATE_PER_MIN * (WINDOW_SECONDS // 60)
-TARGET_SCHEDULE = [
-    (0, 40),
-    (3600, 60),
-    (7200, 90),
-    (10800, 40)
-]
+# === PARÂMETROS DO EXPERIMENTO ===
+WINDOW_SECONDS = 300        # 5 minutos
+TARGET_MESSAGES = 10        # 10 mensagens por janela de 5 min
+TICK_INTERVAL = 60          # Atualiza estatísticas a cada 60 segundos
 
-nodes = {}
-window_start = time.time()
-experiment_start = time.time()
-TARGET_MESSAGES = TARGET_SCHEDULE[0][1]
+# === ESTRUTURAS DE DADOS ===
+message_log = []            # [(timestamp, device_id), ...]
+nodes_total = {}            # contagem total histórica por nodo
 
 
+# === FUNÇÕES AUXILIARES ===
 def calc_satisfaction(recebido, n):
-    val = 20 + 80 * math.exp(-0.002 * (recebido - n) ** 2)
+    """Função de satisfação suave em torno do setpoint."""
+    val = 20 + 80 * math.exp(-0.02 * (recebido - n) ** 2)
     return round(max(0.0, min(100.0, val)), 2)
 
 
-def log_event(device_id, total, satisfaction):
+def get_window_stats():
+    """Retorna total de mensagens e nós ativos na janela móvel."""
+    now = time.time()
+    cutoff = now - WINDOW_SECONDS
+    recent = [(t, dev) for (t, dev) in message_log if t >= cutoff]
+    active_nodes = len(set(dev for _, dev in recent))
+    return len(recent), active_nodes
+
+
+def log_event(event_type, device_id, total_received, satisfaction, active_nodes):
+    """Registra evento (uplink/downlink) em CSV."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, mode="a", newline="") as f:
-        csv.writer(f).writerow([timestamp, device_id, total, satisfaction])
-    print(f"📝 Log salvo: {timestamp} | {device_id} | total={total} | sat={satisfaction}")
+        csv.writer(f).writerow([
+            timestamp, event_type, device_id, total_received,
+            satisfaction, active_nodes
+        ])
+    print(f"📝 Log: {timestamp} | {event_type} | {device_id} | total={total_received} | sat={satisfaction} | ativos={active_nodes}")
 
 
 def send_downlink(client, dev_eui, satisfaction):
+    """Envia satisfação atual como downlink ao nodo que fez uplink."""
     payload = {
         "devEui": dev_eui,
         "confirmed": False,
@@ -51,46 +60,23 @@ def send_downlink(client, dev_eui, satisfaction):
     }
     topic = f"application/{APPLICATION_ID}/device/{dev_eui}/command/down"
     client.publish(topic, json.dumps(payload))
-    print(f"[↓] Downlink enviado para {dev_eui}: satisfação={satisfaction}")
+    print(f"[↓] Downlink para {dev_eui}: satisfação={satisfaction}")
 
 
-def reset_window():
-    global nodes, window_start
-    nodes = {}
-    window_start = time.time()
-    print(f"\n🕒 Nova janela iniciada às {time.strftime('%H:%M:%S')}\n")
-    Timer(WINDOW_SECONDS, reset_window).start()
-
-
-def status_global_tick():
-    total_received = sum(nodes.values())
-    elapsed_min = (time.time() - window_start) / 60.0
-    sat = calc_satisfaction(total_received, TARGET_MESSAGES)
+def periodic_status():
+    """Exibe status global a cada minuto (janela móvel)."""
+    total, active = get_window_stats()
+    satisfaction = calc_satisfaction(total, TARGET_MESSAGES)
     print(
-        f"\n🌐 STATUS | janela {elapsed_min:.1f} min"
-        f" | recebido={total_received}/{TARGET_MESSAGES}"
-        f" | capacidade={WINDOW_CAPACITY}"
-        f" | satisfação={sat:.2f}%"
+        f"\n🌐 STATUS (últimos {WINDOW_SECONDS//60} min)"
+        f" | msgs={total}/{TARGET_MESSAGES}"
+        f" | nós ativos={active}"
+        f" | satisfação média={satisfaction:.2f}%\n"
     )
-    Timer(60, status_global_tick).start()
+    Timer(TICK_INTERVAL, periodic_status).start()
 
 
-def update_target_tick():
-    global TARGET_MESSAGES
-    elapsed = time.time() - experiment_start
-    new_target = TARGET_MESSAGES
-    for t, v in TARGET_SCHEDULE:
-        if elapsed >= t:
-            new_target = v
-        else:
-            break
-    if new_target != TARGET_MESSAGES:
-        TARGET_MESSAGES = new_target
-        warn = " ⚠️(maior que capacidade!)" if TARGET_MESSAGES > WINDOW_CAPACITY else ""
-        print(f"\n🎯 Novo setpoint de janela: TARGET_MESSAGES={TARGET_MESSAGES}{warn}\n")
-    Timer(5, update_target_tick).start()
-
-
+# === CALLBACKS MQTT ===
 def on_connect(client, userdata, flags, rc, properties=None):
     if rc == 0:
         print("✅ Conectado ao broker MQTT do ChirpStack")
@@ -102,25 +88,37 @@ def on_connect(client, userdata, flags, rc, properties=None):
 
 
 def on_message(client, userdata, msg):
-    global nodes
-    data = json.loads(msg.payload.decode())
+    """Processa uplinks, atualiza histórico e envia feedback."""
+    global message_log
 
+    data = json.loads(msg.payload.decode())
     dev_info = data.get("deviceInfo", {})
     dev_eui = dev_info.get("devEui", "unknown")
     device_id = dev_info.get("deviceName", dev_eui)
 
-    nodes[device_id] = nodes.get(device_id, 0) + 1
-    total_received = sum(nodes.values())
-    satisfaction = calc_satisfaction(total_received, TARGET_MESSAGES)
+    now = time.time()
+    message_log.append((now, device_id))
+    nodes_total[device_id] = nodes_total.get(device_id, 0) + 1
 
-    print(f"[↑] Uplink de {device_id} | total={total_received} | alvo={TARGET_MESSAGES} | satisfação={satisfaction}")
-    log_event(device_id, total_received, satisfaction)
+    # Estatísticas da janela móvel
+    total_window, active_nodes = get_window_stats()
+    satisfaction = calc_satisfaction(total_window, TARGET_MESSAGES)
+
+    print(f"[↑] Uplink de {device_id} | janela={total_window}/{TARGET_MESSAGES} | satisfação={satisfaction}")
+    log_event("uplink", device_id, total_window, satisfaction, active_nodes)
+
+    # Envia feedback apenas para o nodo que transmitiu
     send_downlink(client, dev_eui, satisfaction)
+    log_event("downlink", device_id, total_window, satisfaction, active_nodes)
 
 
+# === INICIALIZAÇÃO ===
 with open(LOG_FILE, mode="a", newline="") as f:
     if f.tell() == 0:
-        csv.writer(f).writerow(["timestamp", "device_id", "total_received", "satisfaction"])
+        csv.writer(f).writerow([
+            "timestamp", "event_type", "device_id",
+            "messages_in_window", "satisfaction", "active_nodes"
+        ])
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
@@ -128,9 +126,8 @@ client.on_message = on_message
 client.connect(MQTT_BROKER, MQTT_PORT, 60)
 client.loop_start()
 
-reset_window()
-status_global_tick()
-update_target_tick()
+# Inicia monitoramento periódico
+periodic_status()
 
 try:
     while True:
