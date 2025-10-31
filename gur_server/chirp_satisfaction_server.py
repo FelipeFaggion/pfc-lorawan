@@ -15,7 +15,7 @@ LOG_FILE = "gur_log.csv"
 
 # === PARÂMETROS DO EXPERIMENTO ===
 WINDOW_SECONDS = 300        # 5 minutos
-TARGET_MESSAGES = 10        # 10 mensagens por janela de 5 min
+TARGET_MESSAGES = 30        # 10 mensagens por janela de 5 min
 TICK_INTERVAL = 60          # Atualiza estatísticas a cada 60 segundos
 
 # === ESTRUTURAS DE DADOS ===
