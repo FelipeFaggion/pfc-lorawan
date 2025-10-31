@@ -31,12 +31,17 @@ def calc_satisfaction(recebido, n):
 
 
 def get_window_stats():
-    """Retorna total de mensagens e nós ativos na janela móvel."""
+    """Retorna total de mensagens e nós ativos nos últimos WINDOW_SECONDS."""
     now = time.time()
     cutoff = now - WINDOW_SECONDS
-    recent = [(t, dev) for (t, dev) in message_log if t >= cutoff]
-    active_nodes = len(set(dev for _, dev in recent))
-    return len(recent), active_nodes
+
+    # 🔧 mantém apenas mensagens dentro da janela
+    global message_log
+    message_log = [(t, dev) for (t, dev) in message_log if t >= cutoff]
+
+    # calcula total e nós ativos da janela
+    active_nodes = len(set(dev for _, dev in message_log))
+    return len(message_log), active_nodes
 
 
 def log_event(event_type, device_id, total_received, satisfaction, active_nodes):
