@@ -37,12 +37,12 @@ message_log = []
 
 def get_dynamic_target(sim_time):
     """Define o objetivo de mensagens baseado no tempo de simulação."""
-    if sim_time < 2500:
+    if sim_time < 3600:
         return 45
-    elif sim_time < 5000:
-        return 30
+    elif sim_time < 7200:
+        return 25
     else:
-        return 50
+        return 35
 
 def calc_satisfaction(recebido, target):
     """Calcula a satisfação com base no target atual."""
